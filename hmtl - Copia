@@ -1,0 +1,78 @@
+//Em JavaScript, você pode usar Node.js para se conectar ao banco de dados MySQL e a biblioteca xlsx para criar e manipular arquivos Excel. Certifique-se de ter o Node.js instalado e use o npm para instalar a biblioteca mysql e xlsx com os seguintes comando:
+
+npm install mysql
+npm install xlsx
+
+
+
+const mysql = require('mysql');
+const fs = require('fs');
+const XLSX = require('xlsx');
+
+// Configurações do banco de dados
+const config = {
+  host: 'seu_servidor',
+  user: 'seu_usuario',
+  password: 'sua_senha',
+  database: 'seu_banco_de_dados'
+};
+
+// Criar uma conexão com o banco de dados
+const conexao = mysql.createConnection(config);
+
+// Conectar ao banco de dados
+conexao.connect((err) => {
+  if (err) {
+    console.error('Erro ao conectar ao banco de dados:', err);
+    return;
+  }
+
+  console.log('Conectado ao banco de dados.');
+
+  // Executar uma consulta SQL para obter dados
+  const consultaSQL = 'SELECT * FROM sua_tabela';
+  conexao.query(consultaSQL, (err, resultados) => {
+    if (err) {
+      console.error('Erro ao executar a consulta:', err);
+      conexao.end();
+      return;
+    }
+
+    // Criar um array para armazenar os dados do banco de dados
+    const dados = [];
+
+    // Adicionar cabeçalho
+    const cabecalho = Object.keys(resultados[0]);
+    dados.push(cabecalho);
+
+    // Adicionar dados
+    resultados.forEach((linha) => {
+      const valores = Object.values(linha);
+      dados.push(valores);
+    });
+
+    // Criar um objeto Workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Criar uma planilha com os dados
+    const worksheet = XLSX.utils.aoa_to_sheet(dados);
+
+    // Adicionar a planilha ao Workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Dados');
+
+    // Salvar o Workbook em um arquivo Excel
+    XLSX.writeFile(workbook, 'dados.xlsx');
+
+    console.log('Os dados foram exportados para o arquivo "dados.xlsx".');
+
+    // Fechar a conexão com o banco de dados
+    conexao.end();
+  });
+});
+
+
+
+
+
+
+//Certifique-se de substituir 'seu_servidor', 'seu_usuario', 'sua_senha', 'seu_banco_de_dados', e 'sua_tabela' pelos valores correspondentes ao seu ambiente e banco de dados MySQL. Este exemplo assume que você já tem uma tabela no banco de dados com dados para exportar.
